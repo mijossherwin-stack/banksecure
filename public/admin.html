@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BankSecure SOC · Security Console</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="soc">
+<aside class="side">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+    <div><b>BankSecure SOC</b><small class="sub">Security console</small></div>
+  </div>
+  <nav aria-label="Console">
+    <button data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Overview</button>
+    <button data-tab="alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Alerts<span class="count hidden" id="alertCount">0</span></button>
+    <button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Event log</button>
+    <button data-tab="firewall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.3h18M3 14.6h18M9 4v5.3M15 9.3v5.3M9 14.6V20"/></svg>Firewall<span class="count hidden" id="blockCount">0</span></button>
+    <button data-tab="simulator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Attack simulator</button>
+  </nav>
+  <div class="me"><span class="sub">Signed in as</span><b id="who">—</b><button class="btn ghost small" id="logout">Sign out</button></div>
+</aside>
+
+<main>
+  <header class="soc-top">
+    <h1 id="tabTitle">Security overview</h1>
+    <div class="live" id="live"><span class="dot"></span><span id="updated">Connecting…</span></div>
+  </header>
+
+  <!-- ===================================================== OVERVIEW -->
+  <div class="panel-wrap" data-panel="overview">
+    <section class="kpis">
+      <div class="kpi k-green"><span>Successful logins</span><strong id="kOk">–</strong><small>last 24 h</small></div>
+      <div class="kpi k-amber"><span>Failed logins</span><strong id="kFail">–</strong><small>last 24 h</small></div>
+      <div class="kpi k-red"><span>Firewall drops</span><strong id="kDrop">–</strong><small>last 24 h</small></div>
+      <div class="kpi k-rose"><span>Open alerts</span><strong id="kAlerts">–</strong><small id="kCrit">–</small></div>
+      <div class="kpi k-blue"><span>Blocked IPs</span><strong id="kBlocks">–</strong><small>active firewall rules</small></div>
+      <div class="kpi k-purple"><span>Locked accounts</span><strong id="kLocks">–</strong><small>right now</small></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Login activity · last 60 minutes</h2>
+        <div class="legend"><span><i class="sw-ok"></i>Success</span><span><i class="sw-warn"></i>Failed / locked</span><span><i class="sw-err"></i>Firewall drop</span></div>
+      </div>
+      <div id="chart"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Recent sign-ins · exact location</h2><span class="sub">Click a location to see it on the map</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>User</th><th>Role</th><th>IP</th><th>Location</th></tr></thead>
+        <tbody id="recentLogins"></tbody>
+      </table></div>
+    </section>
+
+    <section class="g3">
+      <div class="card">
+        <div class="card-head"><h2>Latest suspicious-login alerts</h2><button class="btn ghost small" data-go="alerts">View all</button></div>
+        <div class="feed" id="feed"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Protection status</h2><button class="btn ghost small" data-go="firewall">Edit rules</button></div>
+        <div class="prot" id="prot"></div>
+      </div>
+    </section>
+
+    <section class="g2">
+      <div class="card">
+        <h2>Top attacking IPs · 24 h</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>IP</th><th>Location</th><th class="num">Failures</th><th class="num">Accounts</th><th>Status</th></tr></thead>
+          <tbody id="topIps"></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h2>Most targeted accounts · 24 h</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Account</th><th class="num">Failures</th><th class="num">Source IPs</th><th>Status</th></tr></thead>
+          <tbody id="topAccts"></tbody>
+        </table></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================================================== ALERTS -->
+  <div class="panel-wrap" data-panel="alerts" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Suspicious-login alerts</h2>
+        <div class="tools">
+          <select class="input" id="aSev" aria-label="Severity"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option></select>
+          <select class="input" id="aStatus" aria-label="Status"><option value="open">Open (new + acknowledged)</option><option value="new">New</option><option value="acknowledged">Acknowledged</option><option value="resolved">Resolved</option><option value="">All</option></select>
+          <label class="check"><input type="checkbox" id="aHideSim"> Hide simulated</label>
+          <button class="btn ghost small" id="aClearResolved">Delete resolved</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>Severity</th><th>Alert</th><th>Source IP</th><th>Account</th><th class="num">Hits</th><th>Status</th><th class="num">Actions</th></tr></thead>
+        <tbody id="alertRows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table></div>
+      <p class="sub" id="alertNote"></p>
+    </section>
+    <section class="card">
+      <h2>Detection rules</h2>
+      <div class="prot" id="rulesInfo"></div>
+    </section>
+  </div>
+
+  <!-- ===================================================== EVENTS -->
+  <div class="panel-wrap" data-panel="events" hidden>
+    <section class="card">
+      <div class="card-head">
+        <h2>Security event log</h2>
+        <div class="tools">
+          <input class="input" type="search" id="eSearch" placeholder="Search user, IP, ISP, location…" aria-label="Search events">
+          <select class="input" id="eType" aria-label="Event type">
+            <option value="">All events</option><option value="success">Successful logins</option><option value="failed">Failed / locked</option>
+            <option value="firewall">Firewall</option><option value="admin">Admin actions</option>
+          </select>
+          <label class="check"><input type="checkbox" id="eHideSim"> Hide simulated</label>
+          <a class="btn ghost small" href="/api/admin/events.csv">Export CSV</a>
+          <button class="btn danger small" id="eClear">Delete all</button>
+        </div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Time</th><th>Event</th><th>User</th><th>Role</th><th>IP (click for lookup)</th><th>ISP</th><th>Location</th><th>Detail</th><th class="num">Delete</th></tr></thead>
+        <tbody id="eventRows"><tr><td colspan="9" class="empty">Loading…</td></tr></tbody>
+      </table></div>
+      <p class="sub" id="eventNote"></p>
+    </section>
+  </div>
+
+  <!-- ===================================================== FIREWALL -->
+  <div class="panel-wrap" data-panel="firewall" hidden>
+    <section class="card">
+      <div class="card-head"><h2>Block an IP address or range</h2><span class="sub">Your IP: <span class="mono" id="yourIp">—</span> · blocks apply to the customer portal only</span></div>
+      <form class="form-row" id="blockForm">
+        <label class="field">IP or CIDR<input name="target" placeholder="203.0.113.7 or 203.0.113.0/24" required></label>
+        <label class="field">Duration<select name="minutes"><option value="15">15 minutes</option><option value="60" selected>1 hour</option><option value="1440">24 hours</option><option value="10080">7 days</option><option value="0">Permanent</option></select></label>
+        <label class="field">Reason<input name="reason" placeholder="e.g. Repeated attacks" maxlength="200"></label>
+        <button class="btn" type="submit">Block</button>
+      </form>
+      <p class="msg" id="blockMsg"></p>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Firewall rules</h2><span class="sub">Auto-blocks are created by the detection engine</span></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Target</th><th>Source</th><th>Reason</th><th>Location</th><th>Created</th><th>Expires</th><th class="num">Hits</th><th class="num">Action</th></tr></thead>
+        <tbody id="blockRows"></tbody>
+      </table></div>
+    </section>
+
+    <section class="g2">
+      <div class="card">
+        <div class="card-head"><h2>Locked accounts</h2><span class="sub">Unlock early if the customer is verified</span></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Account / IP</th><th>Portal</th><th class="num">Failures</th><th>Unlocks in</th><th class="num">Action</th></tr></thead>
+          <tbody id="lockRows"></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Allowlist (trusted IPs)</h2><span class="sub">Never auto-blocked</span></div>
+        <form class="tools" id="allowForm">
+          <input class="input" name="target" placeholder="IP or CIDR" required aria-label="Trusted IP">
+          <input class="input" name="note" placeholder="Note (e.g. Head office)" maxlength="120" aria-label="Note">
+          <button class="btn small" type="submit">Trust</button>
+        </form>
+        <p class="msg" id="allowMsg"></p>
+        <div id="allowList"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Protection rules</h2><span class="msg" id="settingsMsg"></span></div>
+      <form id="settingsForm">
+        <label class="toggle"><input type="checkbox" name="autoBlock"> Automatically block attacking IPs in the firewall</label>
+        <div class="settings-grid">
+          <label class="field">Lock account after<small>failed attempts</small><input type="number" name="maxAccountFailures" min="1" max="50"></label>
+          <label class="field">Account lock duration<small>minutes</small><input type="number" name="accountLockMinutes" min="1" max="1440"></label>
+          <label class="field">Count failures within<small>minutes</small><input type="number" name="failureWindowMinutes" min="1" max="1440"></label>
+          <label class="field">Auto-block IP after<small>failed logins (any accounts)</small><input type="number" name="ipFailureThreshold" min="2" max="1000"></label>
+          <label class="field">Auto-block duration<small>minutes</small><input type="number" name="ipBlockMinutes" min="1" max="10080"></label>
+          <label class="field">Brute-force alert at<small>failures, one IP → one account</small><input type="number" name="bruteForceThreshold" min="2" max="100"></label>
+          <label class="field">Password-spray alert at<small>accounts tried from one IP</small><input type="number" name="sprayAccountThreshold" min="2" max="100"></label>
+          <label class="field">Distributed-attack alert at<small>IPs failing on one account</small><input type="number" name="distributedIpThreshold" min="2" max="100"></label>
+          <label class="field">Detection window<small>minutes</small><input type="number" name="detectionWindowMinutes" min="1" max="60"></label>
+        </div>
+        <button class="btn" type="submit">Save rules</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- ===================================================== SIMULATOR -->
+  <div class="panel-wrap" data-panel="simulator" hidden>
+    <section class="card">
+      <h2>Launch a simulated attack</h2>
+      <p class="callout"><b>Safe by design:</b> simulated attackers use fake IPs from the RFC 5737 documentation ranges (192.0.2.x, 198.51.100.x and 203.0.113.x) and go through this app's own login checks in memory. Nothing is sent over the network. Watch the <b>Alerts</b>, <b>Event log</b> and <b>Firewall</b> tabs react in real time.</p>
+      <form id="simForm">
+        <div class="sim-types">
+          <label class="sim-type"><input type="radio" name="type" value="brute_force" checked><b>Brute force</b><span>One IP rapidly guesses passwords for a single account.</span><em>Expect: account lockout → brute-force alert → firewall auto-block</em></label>
+          <label class="sim-type"><input type="radio" name="type" value="password_spray"><b>Password spray</b><span>One IP tries a few common passwords across many usernames.</span><em>Expect: password-spray alert (critical) → instant IP block</em></label>
+          <label class="sim-type"><input type="radio" name="type" value="distributed"><b>Distributed / botnet</b><span>16 IPs share the guessing so no single IP looks noisy.</span><em>Expect: account lockout + distributed-attack alert</em></label>
+        </div>
+        <div class="sim-form">
+          <label class="field" id="targetField">Target account<select name="target" id="simTarget"></select></label>
+          <label class="field">Attempts<input type="number" name="count" min="5" max="500" value="40"></label>
+          <label class="field">Speed (attempts / second)<input type="number" name="rate" min="1" max="20" value="5"></label>
+          <button class="btn" type="submit">▶ Launch attack</button>
+        </div>
+        <p class="msg" id="simMsg"></p>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Simulations</h2>
+      <div id="simList"></div>
+    </section>
+  </div>
+</main>
+
+<div id="toasts" aria-live="polite"></div>
+
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="mTitle">IP lookup</h3>
+      <div class="tools"><button class="btn ghost small" id="mBlock">Block this IP</button><button id="mClose" class="icon-btn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    </div>
+    <div id="mBody"></div>
+    <div id="map" class="map hidden"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/common.js"></script>
+<script src="/static/admin.js"></script>
+</body>
+</html>

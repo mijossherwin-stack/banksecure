@@ -1,0 +1,13 @@
+{
+  "name": "banksecure",
+  "version": "1.0.0",
+  "description": "BankSecure – banking portal with protection against password guessing: lockout, detection alerts, firewall, SOC dashboard and attack simulator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BankSecure · Security Console Sign-in</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="soc-auth">
+<main class="auth-card">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+    <div><b>BankSecure SOC</b><small class="sub">Firewall &amp; security console</small></div>
+  </div>
+
+  <div id="lockBox" class="alert-box lock hidden" role="status" aria-live="polite">
+    <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Admin sign-in locked</div>
+    <div class="timer" id="lockTimer">05:00</div>
+    <p id="lockText">Too many failed attempts. Try again when the timer reaches 00:00.</p>
+    <div class="bar"><span id="lockBar"></span></div>
+  </div>
+
+  <form id="loginForm" data-portal="admin" novalidate>
+    <label class="field">Admin username<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+    <label class="field pw-wrap">Password<input name="password" type="password" autocomplete="current-password" required><button type="button" id="togglePw" aria-label="Show password">Show</button></label>
+    <p id="msg" class="msg" role="alert"></p>
+    <button class="btn block" id="submitBtn" type="submit">Sign in to console</button>
+    <p class="geo-note" id="geoNote">📍 Admin sign-ins record the device location. Your browser will ask for permission.</p>
+  </form>
+  <div class="links"><span class="sub">Every attempt is logged.</span><a href="/">← Online banking</a></div>
+</main>
+<script src="/static/common.js"></script>
+<script src="/static/login.js"></script>
+</body>
+</html>

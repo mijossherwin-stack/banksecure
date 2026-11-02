@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BankSecure · Online Banking Sign-in</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bank-auth">
+<section class="auth-hero">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 20h18"/></svg></div>
+    <div><b>BankSecure</b><small>Online Banking</small></div>
+  </div>
+  <div>
+    <h1>Your money, guarded against password guessing.</h1>
+    <p class="lead">Every sign-in is checked in real time. Repeated guessing locks the account, and the firewall shuts out the attacker.</p>
+    <ul class="features">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><div><b>Account lockout</b><span id="policyText">Too many wrong passwords temporarily lock the account.</span></div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.3h18M3 14.6h18M9 4v5.3M15 9.3v5.3M9 14.6V20"/></svg><div><b>Adaptive firewall</b>Networks that attack many accounts are blocked automatically.</div></li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="M12 8v4M12 16h.01"/></svg><div><b>Suspicious-login alerts</b>Brute force, password spray and unusual locations are flagged to our security team.</div></li>
+    </ul>
+  </div>
+  <p class="fine">© 2026 BankSecure Online Banking</p>
+</section>
+
+<section class="auth-side">
+  <main class="auth-card">
+    <h2>Sign in</h2>
+    <p class="sub">Access your accounts securely.</p>
+
+    <div id="fwBox" class="alert-box fw hidden" role="status">
+      <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.3h18M3 14.6h18M9 4v5.3M15 9.3v5.3M9 14.6V20"/></svg>Blocked by BankSecure firewall</div>
+      <div class="timer" id="fwTimer">--:--</div>
+      <p id="fwText">Access from your network is blocked because of suspicious activity.</p>
+    </div>
+
+    <div id="lockBox" class="alert-box lock hidden" role="status" aria-live="polite">
+      <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Account temporarily locked</div>
+      <div class="timer" id="lockTimer">05:00</div>
+      <p id="lockText">Too many failed attempts. You can try again when the timer reaches 00:00.</p>
+      <div class="bar"><span id="lockBar"></span></div>
+    </div>
+
+    <form id="loginForm" data-portal="customer" novalidate>
+      <label class="field">Username<input name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="field pw-wrap">Password<input name="password" type="password" autocomplete="current-password" required><button type="button" id="togglePw" aria-label="Show password">Show</button></label>
+      <p id="msg" class="msg" role="alert"></p>
+      <button class="btn block" id="submitBtn" type="submit">Sign in</button>
+      <p class="geo-note" id="geoNote">📍 For your security, BankSecure checks your device location when you sign in. Your browser will ask for permission.</p>
+    </form>
+    <div class="links"><span class="sub">Need help? Call 8888-BANK</span><a href="/admin/login">Security console →</a></div>
+  </main>
+</section>
+<script src="/static/common.js"></script>
+<script src="/static/login.js"></script>
+</body>
+</html>
